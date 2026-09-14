@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { Store } from "../src/store.js";
 import { Poller, ApiError, WardogsClient, retryAfter } from "../src/poller.js";
 import { parseStatus, friendlyMap, freshness } from "../src/model.js";
-import { embeds, presence, scoreBar } from "../src/render.js";
+import { embeds, presence, scoreBar, updatedFooter } from "../src/render.js";
 import { config } from "../src/config.js";
 import { Panels } from "../src/panels.js";
 const fixture = {
@@ -59,7 +59,7 @@ test("real shape renders confirmed aliases, exact presence, UUID and no invented
   assert.ok(!output[0]!.fields!.some((f) => f.name === "Match duration"));
   assert.equal(
     output[0]!.fields!.find((f) => f.name === "🟦 Lonestar")!.value,
-    "**0 / 100** points\n`▱▱▱▱▱▱▱▱▱▱`",
+    "**0 / 100** points\n`▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱`",
   );
   for (const [raw, name] of Object.entries({
     Europe: "Ozeti",
@@ -346,18 +346,50 @@ test("one embed aligns metadata and places banner below full-width score bars", 
       .every((f) => f.inline === false && f.value.includes("/ 100")),
   );
 });
-test("score bars have ten segments and clamp fill while retaining exact scores", () => {
+test("score bars have twenty segments and clamp fill while retaining exact scores", () => {
   for (const [score, filled] of [
     [-10, 0],
     [0, 0],
-    [9, 0],
-    [10, 1],
-    [59, 5],
-    [100, 10],
-    [150, 10],
+    [4, 0],
+    [5, 1],
+    [59, 11],
+    [100, 20],
+    [150, 20],
   ]) {
     const bar = scoreBar(score!);
-    assert.equal(bar.length, 10);
+    assert.equal(bar.length, 20);
     assert.equal([...bar].filter((x) => x === "▰").length, filled);
   }
+});
+
+test("footer uses last successful UTC update and does not duplicate native timestamp", () => {
+  const now = Date.parse("2026-09-14T08:35:00Z");
+  assert.equal(
+    updatedFooter(now, now),
+    "Updated Today at 08:35 | Created by joinunn.com",
+  );
+  assert.equal(
+    updatedFooter(now, now + 86400000),
+    "Updated Yesterday at 08:35 | Created by joinunn.com",
+  );
+  assert.equal(
+    updatedFooter(now, now + 172800000),
+    "Updated 2026-09-14 at 08:35 | Created by joinunn.com",
+  );
+  assert.equal(
+    updatedFooter(undefined, now),
+    "Awaiting first update | Created by joinunn.com",
+  );
+  const [embed] = embeds(
+    { status: parseStatus(fixture), failed: false, updatedAt: now },
+    c,
+    now,
+  );
+  assert.equal(embed!.color, 0x87cefa);
+  assert.equal(embed!.timestamp, undefined);
+  assert.ok(
+    !embed!.fields!.some(
+      (f) => f.name === "Faction scores" || f.value.includes("per segment"),
+    ),
+  );
 });

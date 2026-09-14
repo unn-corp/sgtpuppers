@@ -4,7 +4,7 @@ A small, read-only Wardogs Discord status bot. TypeScript, Node.js 24, discord.j
 
 - Presence: `NA1 | 0/100 | Bakurani`.
 - `/status` creates one persistent, self-updating panel per channel. Reusing the command returns its link.
-- English match details, player count, UUID join code in a copyable code block, next map, and faction scores with inline emblems and ten-segment progress bars (10 points each, 100-point display scale). One unified embed keeps the sections the same width, with the banner below the scores.
+- English match details, player count, UUID join code in a copyable code block, next map, and faction scores with inline emblems and twenty-segment progress bars (5 points each, 100-point display scale). One unified embed keeps the sections the same width, with the banner below the scores.
 - Bakurani, Ozeti, and Zestafona display names, including aliases for the API's internal/older names.
 - One shared status request every minute. Rotation and join code refresh every five minutes, with cached catalogs, serialized requests, timeouts, and backoff.
 - Panels survive restarts through a small JSON state file. No database or inbound ports.
@@ -43,6 +43,8 @@ Default faction images come from the community [Wardogs Handbook faction page](h
 ## Failure handling
 
 The bot allows only a narrow set of GET endpoints. It never issues configuration, moderation, or gameplay commands. Requests have ten-second timeouts and at least five seconds between calls. A 429 response pauses all Wardogs requests, honoring `Retry-After`; failures otherwise use approximately 1, 2, 4, then 5-minute retry delays. Discord publishing runs independently.
+
+The footer shows the last successful update in UTC, followed by `Created by joinunn.com`.
 
 A failed status read marks the last snapshot **Stale**; five minutes without fresh status shows **Unavailable**. This does not claim the game server itself is offline. Last-known values and their original timestamp remain visible. Join-code and rotation freshness are tracked separately. Missing match duration stays absent. Score bars use a fixed 100-point display scale, not a claimed server win condition. Bars clamp at 0–100 while numeric scores remain exact.
 

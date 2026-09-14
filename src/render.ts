@@ -21,8 +21,22 @@ export function presence(s: Snapshot, c: Config, now = Date.now()) {
   };
 }
 export function scoreBar(score: number) {
-  const filled = Math.max(0, Math.min(10, Math.floor(score / 10)));
-  return "▰".repeat(filled) + "▱".repeat(10 - filled);
+  const filled = Math.max(0, Math.min(20, Math.floor(score / 5)));
+  return "▰".repeat(filled) + "▱".repeat(20 - filled);
+}
+export function updatedFooter(updatedAt: number | undefined, now: number) {
+  if (updatedAt === undefined)
+    return "Awaiting first update | Created by joinunn.com";
+  const date = new Date(updatedAt).toISOString();
+  const today = new Date(now).toISOString().slice(0, 10);
+  const yesterday = new Date(now - 86_400_000).toISOString().slice(0, 10);
+  const day =
+    date.slice(0, 10) === today
+      ? "Today"
+      : date.slice(0, 10) === yesterday
+        ? "Yesterday"
+        : date.slice(0, 10);
+  return `Updated ${day} at ${date.slice(11, 16)} | Created by joinunn.com`;
 }
 export function embeds(s: Snapshot, c: Config, now = Date.now()): APIEmbed[] {
   const display = (kind: string, id: string) =>
@@ -34,16 +48,12 @@ export function embeds(s: Snapshot, c: Config, now = Date.now()): APIEmbed[] {
     status = s.status;
   const e: APIEmbed = {
     title: `Server status · ${state}`,
-    color:
-      state === "Online" ? 0x2ecc71 : state === "Stale" ? 0xf1c40f : 0x95a5a6,
+    color: 0x87cefa,
     fields: [],
     footer: {
-      text: s.updatedAt
-        ? "Last successful status update"
-        : "Waiting for first successful status update",
+      text: updatedFooter(s.updatedAt, now),
     },
   };
-  if (s.updatedAt) e.timestamp = new Date(s.updatedAt).toISOString();
   if (status) {
     e.description = `**${clean(status.serverName, 250)}**`;
     const modes = status.experiences.map((x) =>
@@ -105,10 +115,6 @@ export function embeds(s: Snapshot, c: Config, now = Date.now()): APIEmbed[] {
 
   const scores = status?.factionScores.slice(0, 3) || [];
   if (scores.length) {
-    e.fields!.push({
-      name: "Faction scores",
-      value: `10 points per segment · 100-point display scale${state !== "Online" ? " · Last known scores" : ""}`,
-    });
     e.fields!.push(
       ...scores.map((f) => {
         const faction = f.name.toLowerCase();
