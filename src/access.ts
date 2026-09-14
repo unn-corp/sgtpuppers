@@ -23,6 +23,8 @@ export function canUseCommands(
       interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild) ??
       false
     );
+  if (interaction.memberPermissions?.has(PermissionFlagsBits.Administrator))
+    return true;
   const roles = interaction.member.roles;
   return Array.isArray(roles)
     ? roles.includes(c.commandRoleId)

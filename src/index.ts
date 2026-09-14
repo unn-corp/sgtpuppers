@@ -32,7 +32,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
     if (!canUseCommands(interaction, c)) {
       await interaction.reply({
         content: c.commandRoleId
-          ? "Slash commands require the configured command role in this Discord server."
+          ? "Slash commands require Administrator permission or the configured command role in this Discord server."
           : "Slash commands require Manage Server in the configured Discord server.",
         flags: MessageFlags.Ephemeral,
       });

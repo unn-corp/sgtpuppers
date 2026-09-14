@@ -37,7 +37,7 @@ test("blank role preserves Manage Server including administrators", () => {
     PermissionFlagsBits.ManageGuild.toString(),
   );
 });
-test("configured role permits ordinary members and denies non-holders including admins", () => {
+test("configured role permits role holders or administrators", () => {
   const c = config({ ...env, DISCORD_COMMAND_ROLE_ID: roleId });
   for (const cached of [false, true]) {
     assert.equal(canUseCommands(interaction([roleId], 0n, cached), c), true);
@@ -46,7 +46,7 @@ test("configured role permits ordinary members and denies non-holders including 
         interaction([], PermissionFlagsBits.Administrator, cached),
         c,
       ),
-      false,
+      true,
     );
     assert.equal(
       canUseCommands(

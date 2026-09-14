@@ -30,7 +30,7 @@ No domain, reverse proxy, or exposed port is needed. Allow outbound HTTP to Ward
 | `DISCORD_TOKEN` | Bot token (required) |
 | `DISCORD_APPLICATION_ID` | Application ID (required) |
 | `DISCORD_GUILD_ID` | Discord guild ID (required) |
-| `DISCORD_COMMAND_ROLE_ID` | Optional role required for **all slash commands**. Blank retains Manage Server access. When set, role holders need no Manage Server permission; even administrators must hold the role. |
+| `DISCORD_COMMAND_ROLE_ID` | Optional role required for **all slash commands**. Blank retains Manage Server access. When set, role holders need no Manage Server permission; administrators are always allowed. |
 | `WARDOGS_URL` | HTTP(S) origin, e.g. `http://192.0.2.1:20026` (required) |
 | `WARDOGS_PASSWORD` | RCON bearer password (required) |
 | `SERVER_LABEL` | Short presence label, default `NA1`; distinct from the UUID join code |
