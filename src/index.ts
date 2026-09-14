@@ -6,6 +6,7 @@ import {
   PermissionFlagsBits,
 } from "discord.js";
 import { setTimeout as sleep } from "node:timers/promises";
+import { prepareFactionEmojis } from "./faction-emojis.js";
 import { registerCommand } from "./register.js";
 import { config } from "./config.js";
 import { Store } from "./store.js";
@@ -104,7 +105,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
         .catch(() => {});
   }
 });
-client.once(Events.ClientReady, () => console.log("Discord connected."));
+client.once(Events.ClientReady, (ready) => {
+  console.log("Discord connected.");
+  void prepareFactionEmojis(ready.application.emojis, c);
+});
 await registerCommand(c);
 await client.login(c.token);
 async function polling() {

@@ -50,15 +50,16 @@ test("real shape renders confirmed aliases, exact presence, UUID and no invented
     "NA1 | 0/100 | Bakurani",
   );
   const output = embeds(s, c, 1_000_000);
-  assert.equal(output.length, 4);
+  assert.equal(output.length, 2);
   assert.ok(
     output[0]!
       .fields!.find((f) => f.name === "Join code")!
       .value.startsWith("```\n00000000"),
   );
   assert.ok(!output[0]!.fields!.some((f) => f.name === "Match duration"));
-  assert.equal(output[1]!.description, "**0** points");
-  assert.ok(output[1]!.author!.icon_url!.includes("Lonestar.webp"));
+  assert.equal(output[1]!.fields!.length, 3);
+  assert.equal(output[1]!.fields![0]!.value, "**0** points");
+  assert.equal(output[1]!.fields![0]!.name, "🟦 Lonestar");
   for (const [raw, name] of Object.entries({
     Europe: "Ozeti",
     Madrid: "Ozeti",
@@ -290,9 +291,9 @@ test("custom emoji uses embed body and cached catalogs name new maps", () => {
     { ...c, emojis: { lonestar: "<:lonestar:123456789012345678>" } },
     1_000_000,
   );
-  assert.equal(output[1]!.author!.icon_url, undefined);
+  assert.equal(output[1]!.author, undefined);
   assert.ok(
-    output[1]!.description!.startsWith("<:lonestar:123456789012345678>"),
+    output[1]!.fields![0]!.name.startsWith("<:lonestar:123456789012345678>"),
   );
   assert.equal(
     friendlyMap("FutureMap", [
@@ -320,4 +321,21 @@ test("malformed status keeps last valid snapshot rather than replacing it", asyn
   assert.equal(poller.snapshot.status!.map, "Bakurani");
   assert.equal(poller.snapshot.updatedAt, 1_000_000);
   assert.equal(poller.snapshot.failed, true);
+});
+
+test("banner is last and all faction scores share one embed", () => {
+  const output = embeds(
+    { status: parseStatus(fixture), failed: false, updatedAt: 1_000_000 },
+    { ...c, banner: "https://example.com/banner.webp" },
+    1_000_000,
+  );
+  assert.equal(output.length, 3);
+  assert.equal(output[0]!.image, undefined);
+  assert.equal(output[1]!.title, "Faction scores");
+  assert.equal(output[1]!.fields!.length, 3);
+  assert.ok(output[1]!.fields!.every((f) => f.inline));
+  assert.deepEqual(output[2]!.image, {
+    url: "https://example.com/banner.webp",
+  });
+  assert.equal(output[2]!.fields, undefined);
 });

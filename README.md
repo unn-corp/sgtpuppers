@@ -4,7 +4,7 @@ A small, read-only Wardogs Discord status bot. TypeScript, Node.js 24, discord.j
 
 - Presence: `NA1 | 0/100 | Bakurani`.
 - `/status` creates one persistent, self-updating panel per channel. Reusing the command returns its link.
-- English match details, player count, UUID join code in a copyable code block, next map, and faction scores with emblem images.
+- English match details, player count, UUID join code in a copyable code block, next map, and faction scores grouped in one section with inline emblems, followed by the banner.
 - Bakurani, Ozeti, and Zestafona display names, including aliases for the API's internal/older names.
 - One shared status request every minute. Rotation and join code refresh every five minutes, with cached catalogs, serialized requests, timeouts, and backoff.
 - Panels survive restarts through a small JSON state file. No database or inbound ports.
@@ -36,9 +36,9 @@ No domain, reverse proxy, or exposed port is needed. Allow outbound HTTP to Ward
 | `DATA_DIR` | Set automatically to `/app/data`, backed by the `bot-data` named volume in Compose; no configuration needed |
 | `BANNER_URL` | Defaults to the repository’s `assets/banner.webp` in Compose and `.env.example`. Set an empty value to hide the banner, or supply another HTTP(S) image URL. |
 | `LONESTAR_EMOJI`, `VALKYRA_EMOJI`, `MANTICORE_EMOJI` | Optional custom emoji strings, e.g. `<:lonestar:123456789012345678>` |
-| `LONESTAR_ICON_URL`, `VALKYRA_ICON_URL`, `MANTICORE_ICON_URL` | Optional HTTP(S) image overrides |
+| `LONESTAR_ICON_URL`, `VALKYRA_ICON_URL`, `MANTICORE_ICON_URL` | Optional HTTP(S) image sources for application emoji |
 
-Default faction images come from the community [Wardogs Handbook faction page](https://wardogshandbook.com/Factions): [Lonestar](https://wardogshandbook.com/images/Factions/Lonestar.webp), [Valkyra](https://wardogshandbook.com/images/Factions/valkyra.webp), [Manticore](https://wardogshandbook.com/images/Factions/manticore.webp). These are remotely hosted game emblems, not bundled assets or an endorsement. You can point the env variables at your own hosted copies. A custom emoji overrides that faction's image; use emoji accessible to the bot. External guild emoji may require Use External Emojis permission.
+Default faction images come from the community [Wardogs Handbook faction page](https://wardogshandbook.com/Factions): [Lonestar](https://wardogshandbook.com/images/Factions/Lonestar.webp), [Valkyra](https://wardogshandbook.com/images/Factions/valkyra.webp), [Manticore](https://wardogshandbook.com/images/Factions/manticore.webp). On startup the bot reuses or creates three application-owned emoji (`wardogs_lonestar`, `wardogs_valkyra`, `wardogs_manticore`) from these images. They require no extra guild permissions or guild emoji slots. Setup failures fall back to colored squares without stopping the bot. Existing application emoji are reused; to replace an image, remove its emoji in the application settings before restarting, or set a custom emoji override. These are remotely hosted game emblems, not bundled assets or an endorsement. Custom emoji overrides take precedence; use emoji accessible to the bot. External guild emoji may require Use External Emojis permission.
 
 ## Failure handling
 

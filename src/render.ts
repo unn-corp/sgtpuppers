@@ -98,32 +98,33 @@ export function embeds(s: Snapshot, c: Config, now = Date.now()): APIEmbed[] {
       value:
         "Status data is unavailable or stale. Values shown are from the last successful update.",
     });
-  if (c.banner) e.image = { url: c.banner };
   const result: APIEmbed[] = [e];
-  for (const f of status?.factionScores.slice(0, 3) || []) {
-    const custom = Object.hasOwn(c.emojis, f.name.toLowerCase())
-      ? c.emojis[f.name.toLowerCase()]
-      : undefined;
-    const icon =
-      custom ||
-      { lonestar: "🟦", valkyra: "🟥", manticore: "🟩" }[
-        f.name.toLowerCase()
-      ] ||
-      "⚑";
-    const image =
-      custom || !Object.hasOwn(c.icons, f.name.toLowerCase())
-        ? undefined
-        : c.icons[f.name.toLowerCase()];
+  const scores = status?.factionScores.slice(0, 3) || [];
+  if (scores.length) {
     result.push({
-      color: /^#[0-9a-f]{6}$/i.test(f.colorHex || "")
-        ? parseInt(f.colorHex!.slice(1), 16)
-        : 0x5865f2,
-      author: {
-        name: clean(f.name, 80),
-        icon_url: image,
-      },
-      description: `${image ? "" : icon + " "}**${f.score}${status?.scoreCap ? ` / ${status.scoreCap}` : ""}** points${state !== "Online" ? " (last known)" : ""}`,
+      title: "Faction scores",
+      color: e.color,
+      description: state !== "Online" ? "Last known scores" : undefined,
+      fields: scores.map((f) => {
+        const faction = f.name.toLowerCase();
+        const custom = Object.hasOwn(c.emojis, faction)
+          ? c.emojis[faction]
+          : undefined;
+        const fallback =
+          new Map([
+            ["lonestar", "🟦"],
+            ["valkyra", "🟥"],
+            ["manticore", "🟩"],
+          ]).get(faction) || "⚑";
+        return {
+          name: `${custom || fallback} ${clean(f.name, 80)}`,
+          value: `**${f.score}${status?.scoreCap ? ` / ${status.scoreCap}` : ""}** points`,
+          inline: true,
+        };
+      }),
     });
   }
+  // Keep branding after all status and score content.
+  if (c.banner) result.push({ color: e.color, image: { url: c.banner } });
   return result;
 }
