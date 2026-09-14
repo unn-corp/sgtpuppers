@@ -1,0 +1,25 @@
+services:
+  bot:
+    build: .
+    restart: unless-stopped
+    init: true
+    environment:
+      DISCORD_TOKEN: ${DISCORD_TOKEN:?Set DISCORD_TOKEN}
+      DISCORD_APPLICATION_ID: ${DISCORD_APPLICATION_ID:?Set DISCORD_APPLICATION_ID}
+      DISCORD_GUILD_ID: ${DISCORD_GUILD_ID:?Set DISCORD_GUILD_ID}
+      WARDOGS_URL: ${WARDOGS_URL:?Set WARDOGS_URL}
+      WARDOGS_PASSWORD: ${WARDOGS_PASSWORD:?Set WARDOGS_PASSWORD}
+      SERVER_LABEL: ${SERVER_LABEL:-NA1}
+      BANNER_URL: ${BANNER_URL:-}
+      LONESTAR_EMOJI: ${LONESTAR_EMOJI:-}
+      VALKYRA_EMOJI: ${VALKYRA_EMOJI:-}
+      MANTICORE_EMOJI: ${MANTICORE_EMOJI:-}
+      LONESTAR_ICON_URL: ${LONESTAR_ICON_URL:-}
+      VALKYRA_ICON_URL: ${VALKYRA_ICON_URL:-}
+      MANTICORE_ICON_URL: ${MANTICORE_ICON_URL:-}
+      DATA_DIR: /app/data
+    volumes:
+      - bot-data:/app/data
+    stop_grace_period: 20s
+volumes:
+  bot-data:

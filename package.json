@@ -1,0 +1,24 @@
+{
+  "name": "sgtpuppers",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node --env-file-if-exists=.env dist/src/index.js",
+    "test": "npm run build && node --test dist/test/*.test.js",
+    "format": "prettier --write src test package.json tsconfig.json compose.yaml",
+    "format:check": "prettier --check src test package.json tsconfig.json compose.yaml"
+  },
+  "dependencies": {
+    "discord.js": "14.27.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "prettier": "3.6.2",
+    "typescript": "~5.9.3"
+  }
+}
