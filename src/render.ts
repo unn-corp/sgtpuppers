@@ -34,7 +34,7 @@ export function embeds(s: Snapshot, c: Config, now = Date.now()): APIEmbed[] {
     status = s.status;
   const e: APIEmbed = {
     title: `Server status · ${state}`,
-    color: 0x87cefa,
+    color: 0x3498db,
     fields: [],
     footer: {
       text:

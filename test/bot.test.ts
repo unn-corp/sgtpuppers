@@ -369,7 +369,7 @@ test("footer uses native Discord timestamp for viewer-local time", () => {
     c,
     now + 60_000,
   );
-  assert.equal(embed!.color, 0x87cefa);
+  assert.equal(embed!.color, 0x3498db);
   assert.equal(embed!.timestamp, "2026-09-14T08:35:00.000Z");
   assert.equal(embed!.footer!.text, "Created by joinunn.com | Updated");
   assert.ok(
