@@ -47,6 +47,9 @@ export function config(env = process.env) {
     token: required("DISCORD_TOKEN"),
     applicationId: snowflake("DISCORD_APPLICATION_ID"),
     guildId: snowflake("DISCORD_GUILD_ID"),
+    commandRoleId: env.DISCORD_COMMAND_ROLE_ID?.trim()
+      ? snowflake("DISCORD_COMMAND_ROLE_ID")
+      : undefined,
     url: url.origin,
     password: required("WARDOGS_PASSWORD"),
     label: (env.SERVER_LABEL || "NA1").slice(0, 32),

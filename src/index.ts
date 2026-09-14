@@ -1,10 +1,5 @@
-import {
-  Client,
-  Events,
-  GatewayIntentBits,
-  MessageFlags,
-  PermissionFlagsBits,
-} from "discord.js";
+import { canUseCommands } from "./access.js";
+import { Client, Events, GatewayIntentBits, MessageFlags } from "discord.js";
 import { setTimeout as sleep } from "node:timers/promises";
 import { prepareFactionEmojis } from "./faction-emojis.js";
 import { registerCommand } from "./register.js";
@@ -32,20 +27,18 @@ function logError(event: string, e: unknown) {
 }
 client.on(Events.Error, (e) => logError("discord_client_error", e));
 client.on(Events.InteractionCreate, async (interaction) => {
-  if (!interaction.isChatInputCommand() || interaction.commandName !== "status")
-    return;
+  if (!interaction.isChatInputCommand()) return;
   try {
-    if (
-      interaction.guildId !== c.guildId ||
-      !interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)
-    ) {
+    if (!canUseCommands(interaction, c)) {
       await interaction.reply({
-        content:
-          "This command requires Manage Server in the configured Discord server.",
+        content: c.commandRoleId
+          ? "Slash commands require the configured command role in this Discord server."
+          : "Slash commands require Manage Server in the configured Discord server.",
         flags: MessageFlags.Ephemeral,
       });
       return;
     }
+    if (interaction.commandName !== "status") return;
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     await panels.exclusive(async () => {
       const channel = await client.channels.fetch(interaction.channelId);
