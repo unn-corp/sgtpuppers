@@ -34,7 +34,7 @@ No domain, reverse proxy, or exposed port is needed. Allow outbound HTTP to Ward
 | `WARDOGS_PASSWORD` | RCON bearer password (required) |
 | `SERVER_LABEL` | Short presence label, default `NA1`; distinct from the UUID join code |
 | `DATA_DIR` | Set automatically to `/app/data`, backed by the `bot-data` named volume in Compose; no configuration needed |
-| `BANNER_URL` | Optional HTTP(S) banner image |
+| `BANNER_URL` | Defaults to the repository’s `assets/banner.webp` in Compose and `.env.example`. Set an empty value to hide the banner, or supply another HTTP(S) image URL. |
 | `LONESTAR_EMOJI`, `VALKYRA_EMOJI`, `MANTICORE_EMOJI` | Optional custom emoji strings, e.g. `<:lonestar:123456789012345678>` |
 | `LONESTAR_ICON_URL`, `VALKYRA_ICON_URL`, `MANTICORE_ICON_URL` | Optional HTTP(S) image overrides |
 

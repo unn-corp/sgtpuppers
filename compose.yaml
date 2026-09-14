@@ -10,7 +10,7 @@ services:
       WARDOGS_URL: ${WARDOGS_URL:?Set WARDOGS_URL}
       WARDOGS_PASSWORD: ${WARDOGS_PASSWORD:?Set WARDOGS_PASSWORD}
       SERVER_LABEL: ${SERVER_LABEL:-NA1}
-      BANNER_URL: ${BANNER_URL:-}
+      BANNER_URL: ${BANNER_URL-https://raw.githubusercontent.com/unn-corp/sgtpuppers/main/assets/banner.webp}
       LONESTAR_EMOJI: ${LONESTAR_EMOJI:-}
       VALKYRA_EMOJI: ${VALKYRA_EMOJI:-}
       MANTICORE_EMOJI: ${MANTICORE_EMOJI:-}
