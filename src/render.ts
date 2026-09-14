@@ -24,20 +24,6 @@ export function scoreBar(score: number) {
   const filled = Math.max(0, Math.min(20, Math.floor(score / 5)));
   return "▰".repeat(filled) + "▱".repeat(20 - filled);
 }
-export function updatedFooter(updatedAt: number | undefined, now: number) {
-  if (updatedAt === undefined)
-    return "Awaiting first update | Created by joinunn.com";
-  const date = new Date(updatedAt).toISOString();
-  const today = new Date(now).toISOString().slice(0, 10);
-  const yesterday = new Date(now - 86_400_000).toISOString().slice(0, 10);
-  const day =
-    date.slice(0, 10) === today
-      ? "Today"
-      : date.slice(0, 10) === yesterday
-        ? "Yesterday"
-        : date.slice(0, 10);
-  return `Updated ${day} at ${date.slice(11, 16)} | Created by joinunn.com`;
-}
 export function embeds(s: Snapshot, c: Config, now = Date.now()): APIEmbed[] {
   const display = (kind: string, id: string) =>
     humanize(
@@ -51,9 +37,14 @@ export function embeds(s: Snapshot, c: Config, now = Date.now()): APIEmbed[] {
     color: 0x87cefa,
     fields: [],
     footer: {
-      text: updatedFooter(s.updatedAt, now),
+      text:
+        s.updatedAt !== undefined
+          ? "Created by joinunn.com | Updated"
+          : "Created by joinunn.com | Awaiting first update",
     },
   };
+  if (s.updatedAt !== undefined)
+    e.timestamp = new Date(s.updatedAt).toISOString();
   if (status) {
     e.description = `**${clean(status.serverName, 250)}**`;
     const modes = status.experiences.map((x) =>

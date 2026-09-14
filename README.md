@@ -44,7 +44,7 @@ Default faction images come from the community [Wardogs Handbook faction page](h
 
 The bot allows only a narrow set of GET endpoints. It never issues configuration, moderation, or gameplay commands. Requests have ten-second timeouts and at least five seconds between calls. A 429 response pauses all Wardogs requests, honoring `Retry-After`; failures otherwise use approximately 1, 2, 4, then 5-minute retry delays. Discord publishing runs independently.
 
-The footer shows the last successful update in UTC, followed by `Created by joinunn.com`.
+The footer uses Discord’s native timestamp for the last successful update, displayed in each viewer’s local time beside `Created by joinunn.com | Updated`.
 
 A failed status read marks the last snapshot **Stale**; five minutes without fresh status shows **Unavailable**. This does not claim the game server itself is offline. Last-known values and their original timestamp remain visible. Join-code and rotation freshness are tracked separately. Missing match duration stays absent. Score bars use a fixed 100-point display scale, not a claimed server win condition. Bars clamp at 0–100 while numeric scores remain exact.
 

@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { Store } from "../src/store.js";
 import { Poller, ApiError, WardogsClient, retryAfter } from "../src/poller.js";
 import { parseStatus, friendlyMap, freshness } from "../src/model.js";
-import { embeds, presence, scoreBar, updatedFooter } from "../src/render.js";
+import { embeds, presence, scoreBar } from "../src/render.js";
 import { config } from "../src/config.js";
 import { Panels } from "../src/panels.js";
 const fixture = {
@@ -362,34 +362,25 @@ test("score bars have twenty segments and clamp fill while retaining exact score
   }
 });
 
-test("footer uses last successful UTC update and does not duplicate native timestamp", () => {
+test("footer uses native Discord timestamp for viewer-local time", () => {
   const now = Date.parse("2026-09-14T08:35:00Z");
-  assert.equal(
-    updatedFooter(now, now),
-    "Updated Today at 08:35 | Created by joinunn.com",
-  );
-  assert.equal(
-    updatedFooter(now, now + 86400000),
-    "Updated Yesterday at 08:35 | Created by joinunn.com",
-  );
-  assert.equal(
-    updatedFooter(now, now + 172800000),
-    "Updated 2026-09-14 at 08:35 | Created by joinunn.com",
-  );
-  assert.equal(
-    updatedFooter(undefined, now),
-    "Awaiting first update | Created by joinunn.com",
-  );
   const [embed] = embeds(
-    { status: parseStatus(fixture), failed: false, updatedAt: now },
+    { status: parseStatus(fixture), failed: true, updatedAt: now },
     c,
-    now,
+    now + 60_000,
   );
   assert.equal(embed!.color, 0x87cefa);
-  assert.equal(embed!.timestamp, undefined);
+  assert.equal(embed!.timestamp, "2026-09-14T08:35:00.000Z");
+  assert.equal(embed!.footer!.text, "Created by joinunn.com | Updated");
   assert.ok(
     !embed!.fields!.some(
       (f) => f.name === "Faction scores" || f.value.includes("per segment"),
     ),
+  );
+  const [empty] = embeds({ failed: false }, c, now);
+  assert.equal(empty!.timestamp, undefined);
+  assert.equal(
+    empty!.footer!.text,
+    "Created by joinunn.com | Awaiting first update",
   );
 });
