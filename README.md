@@ -17,9 +17,9 @@ A small, read-only Wardogs Discord status bot. TypeScript, Node.js 24, discord.j
 4. Deploy. The container automatically registers `/status` and starts the bot. There are no install, registration, or startup commands to run manually.
 5. Run `/status` in Discord with **Manage Server** permission to create the public status panel.
 
-**Compose:** builds the image, restarts the service, and mounts the `bot-data` named volume automatically. Use a Docker Compose deployment capable of building from the repository (not a Swarm stack that ignores `build`).
+**Compose (recommended):** builds the image, restarts the service, and automatically creates and mounts the Docker-managed `bot-data` named volume at `/app/data`, matching `DATA_DIR`. No bind mount, host directory, or manual volume setup is required. The volume preserves panel registrations across container recreation and redeployment; do not delete it when updating the bot. Use a Docker Compose deployment capable of building from the repository (not a Swarm stack that ignores `build`).
 
-**Dockerfile:** keep its default start command, supply the same environment variables, and mount a persistent volume at **`/app/data`**. Configure restart-on-failure or unless-stopped in your host. The container runs as UID/GID 1000; a bind-mounted directory must be writable by that user.
+**Dockerfile only:** keep its default start command and supply the same environment variables. Configure a persistent named volume at **`/app/data`** and a restart policy in your Docker host's UI. Use Compose above to have the repository configure these automatically.
 
 No domain, reverse proxy, or exposed port is needed. Allow outbound HTTP to Wardogs and HTTPS/WebSocket access to Discord. Redeploy after changing environment values. Command registration upserts only `/status`, preserving other commands.
 
@@ -33,7 +33,7 @@ No domain, reverse proxy, or exposed port is needed. Allow outbound HTTP to Ward
 | `WARDOGS_URL` | HTTP(S) origin, e.g. `http://192.0.2.1:20026` (required) |
 | `WARDOGS_PASSWORD` | RCON bearer password (required) |
 | `SERVER_LABEL` | Short presence label, default `NA1`; distinct from the UUID join code |
-| `DATA_DIR` | State directory; Compose sets `/app/data` |
+| `DATA_DIR` | Set automatically to `/app/data`, backed by the `bot-data` named volume in Compose; no configuration needed |
 | `BANNER_URL` | Optional HTTP(S) banner image |
 | `LONESTAR_EMOJI`, `VALKYRA_EMOJI`, `MANTICORE_EMOJI` | Optional custom emoji strings, e.g. `<:lonestar:123456789012345678>` |
 | `LONESTAR_ICON_URL`, `VALKYRA_ICON_URL`, `MANTICORE_ICON_URL` | Optional HTTP(S) image overrides |

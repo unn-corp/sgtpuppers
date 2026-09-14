@@ -19,7 +19,9 @@ services:
       MANTICORE_ICON_URL: ${MANTICORE_ICON_URL:-}
       DATA_DIR: /app/data
     volumes:
-      - bot-data:/app/data
+      - type: volume
+        source: bot-data
+        target: /app/data
     stop_grace_period: 20s
 volumes:
   bot-data:
