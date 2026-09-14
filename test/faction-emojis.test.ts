@@ -74,3 +74,29 @@ test("emoji download or API failure does not prevent startup or other factions",
     config(),
   );
 });
+
+test("default icons upload bundled WebP files without an external image host", async () => {
+  const c = config();
+  c.icons = { lonestar: "", valkyra: "", manticore: "" };
+  const created: string[] = [];
+  await prepareFactionEmojis(
+    {
+      fetch: async () => new Map(),
+      create: async ({ name, attachment }) => {
+        assert.ok(attachment.startsWith("data:image/webp;base64,"));
+        const bytes = Buffer.from(attachment.split(",")[1]!, "base64");
+        assert.equal(bytes.toString("ascii", 0, 4), "RIFF");
+        assert.equal(bytes.toString("ascii", 8, 12), "WEBP");
+        assert.ok(bytes.length <= 256 * 1024);
+        created.push(name);
+        return { name, toString: () => `<:${name}:1>` };
+      },
+    },
+    c,
+  );
+  assert.deepEqual(created, [
+    "wardogs_lonestar",
+    "wardogs_valkyra",
+    "wardogs_manticore",
+  ]);
+});

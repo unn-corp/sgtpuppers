@@ -56,15 +56,9 @@ export function config(env = process.env) {
     dataDir: env.DATA_DIR || "./data",
     banner,
     icons: {
-      lonestar:
-        env.LONESTAR_ICON_URL ||
-        "https://wardogshandbook.com/images/Factions/Lonestar.webp",
-      valkyra:
-        env.VALKYRA_ICON_URL ||
-        "https://wardogshandbook.com/images/Factions/valkyra.webp",
-      manticore:
-        env.MANTICORE_ICON_URL ||
-        "https://wardogshandbook.com/images/Factions/manticore.webp",
+      lonestar: env.LONESTAR_ICON_URL || "",
+      valkyra: env.VALKYRA_ICON_URL || "",
+      manticore: env.MANTICORE_ICON_URL || "",
     } as Record<string, string>,
     emojis: Object.fromEntries(
       ["LONESTAR", "VALKYRA", "MANTICORE"].map((name) => [

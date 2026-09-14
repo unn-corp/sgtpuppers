@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import type { Config } from "./config.js";
 
 type Emoji = { name: string | null; toString(): string };
@@ -6,7 +7,15 @@ type EmojiManager = {
   create(options: { name: string; attachment: string }): Promise<Emoji>;
 };
 
-async function imageData(url: string): Promise<string> {
+async function imageData(url: string, faction: string): Promise<string> {
+  if (!url) {
+    const bytes = await readFile(
+      new URL(`../../assets/factions/${faction}.webp`, import.meta.url),
+    );
+    if (bytes.length > 256 * 1024)
+      throw new Error("Icon exceeds Discord emoji limit");
+    return `data:image/webp;base64,${bytes.toString("base64")}`;
+  }
   const response = await fetch(url, { signal: AbortSignal.timeout(10_000) });
   if (!response.ok || !response.body) throw new Error("Icon download failed");
   const mime = response.headers.get("content-type")?.split(";")[0];
@@ -51,7 +60,7 @@ export async function prepareFactionEmojis(
           existing.find((e) => e.name === name) ||
           (await manager.create({
             name,
-            attachment: await load(c.icons[faction]!),
+            attachment: await load(c.icons[faction]!, faction),
           }));
         c.emojis[faction] = emoji.toString();
       } catch {
