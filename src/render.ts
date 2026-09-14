@@ -94,7 +94,7 @@ export function embeds(s: Snapshot, c: Config, now = Date.now()): APIEmbed[] {
       inline: true,
     });
   e.fields!.push({
-    name: `Join code${s.joinFailed || (s.joinAt && now - s.joinAt > 600_000) ? " (last known)" : ""}`,
+    name: `Join by Server ID${s.joinFailed || (s.joinAt && now - s.joinAt > 600_000) ? " (last known)" : ""}`,
     value: s.joinCode ? "```\n" + s.joinCode + "\n```" : "Unavailable",
   });
   if (state !== "Online")

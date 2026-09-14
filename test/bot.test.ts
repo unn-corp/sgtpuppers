@@ -53,7 +53,7 @@ test("real shape renders confirmed aliases, exact presence, UUID and no invented
   assert.equal(output.length, 1);
   assert.ok(
     output[0]!
-      .fields!.find((f) => f.name === "Join code")!
+      .fields!.find((f) => f.name === "Join by Server ID")!
       .value.startsWith("```\n00000000"),
   );
   assert.ok(!output[0]!.fields!.some((f) => f.name === "Match duration"));
