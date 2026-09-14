@@ -20,6 +20,10 @@ export function presence(s: Snapshot, c: Config, now = Date.now()) {
     ],
   };
 }
+export function scoreBar(score: number) {
+  const filled = Math.max(0, Math.min(10, Math.floor(score / 10)));
+  return "▰".repeat(filled) + "▱".repeat(10 - filled);
+}
 export function embeds(s: Snapshot, c: Config, now = Date.now()): APIEmbed[] {
   const display = (kind: string, id: string) =>
     humanize(
@@ -68,17 +72,7 @@ export function embeds(s: Snapshot, c: Config, now = Date.now()): APIEmbed[] {
         inline: true,
       },
     );
-    if (status.matchSeconds !== undefined)
-      e.fields!.push({
-        name: "Match duration",
-        value: `${Math.floor(status.matchSeconds / 60)}m ${Math.floor(status.matchSeconds % 60)}s`,
-        inline: true,
-      });
   }
-  e.fields!.push({
-    name: `Join code${s.joinFailed || (s.joinAt && now - s.joinAt > 600_000) ? " (last known)" : ""}`,
-    value: s.joinCode ? "```\n" + s.joinCode + "\n```" : "Unavailable",
-  });
   const next =
     s.rotation?.entries.find((x) => x.status === "next") ||
     s.rotation?.entries.find((x) => x.index === status?.rotation?.nextIndex);
@@ -92,20 +86,31 @@ export function embeds(s: Snapshot, c: Config, now = Date.now()): APIEmbed[] {
           : "Unknown",
     inline: true,
   });
+  if (status?.matchSeconds !== undefined)
+    e.fields!.push({
+      name: "Match duration",
+      value: `${Math.floor(status.matchSeconds / 60)}m ${Math.floor(status.matchSeconds % 60)}s`,
+      inline: true,
+    });
+  e.fields!.push({
+    name: `Join code${s.joinFailed || (s.joinAt && now - s.joinAt > 600_000) ? " (last known)" : ""}`,
+    value: s.joinCode ? "```\n" + s.joinCode + "\n```" : "Unavailable",
+  });
   if (state !== "Online")
     e.fields!.push({
       name: "Connection",
       value:
         "Status data is unavailable or stale. Values shown are from the last successful update.",
     });
-  const result: APIEmbed[] = [e];
+
   const scores = status?.factionScores.slice(0, 3) || [];
   if (scores.length) {
-    result.push({
-      title: "Faction scores",
-      color: e.color,
-      description: state !== "Online" ? "Last known scores" : undefined,
-      fields: scores.map((f) => {
+    e.fields!.push({
+      name: "Faction scores",
+      value: `10 points per segment · 100-point display scale${state !== "Online" ? " · Last known scores" : ""}`,
+    });
+    e.fields!.push(
+      ...scores.map((f) => {
         const faction = f.name.toLowerCase();
         const custom = Object.hasOwn(c.emojis, faction)
           ? c.emojis[faction]
@@ -118,13 +123,13 @@ export function embeds(s: Snapshot, c: Config, now = Date.now()): APIEmbed[] {
           ]).get(faction) || "⚑";
         return {
           name: `${custom || fallback} ${clean(f.name, 80)}`,
-          value: `**${f.score}${status?.scoreCap ? ` / ${status.scoreCap}` : ""}** points`,
-          inline: true,
+          value: `**${f.score} / 100** points\n\`${scoreBar(f.score)}\``,
+          inline: false,
         };
       }),
-    });
+    );
   }
   // Keep branding after all status and score content.
-  if (c.banner) result.push({ color: e.color, image: { url: c.banner } });
-  return result;
+  if (c.banner) e.image = { url: c.banner };
+  return [e];
 }

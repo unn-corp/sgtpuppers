@@ -4,7 +4,7 @@ A small, read-only Wardogs Discord status bot. TypeScript, Node.js 24, discord.j
 
 - Presence: `NA1 | 0/100 | Bakurani`.
 - `/status` creates one persistent, self-updating panel per channel. Reusing the command returns its link.
-- English match details, player count, UUID join code in a copyable code block, next map, and faction scores grouped in one section with inline emblems, followed by the banner.
+- English match details, player count, UUID join code in a copyable code block, next map, and faction scores with inline emblems and ten-segment progress bars (10 points each, 100-point display scale). One unified embed keeps the sections the same width, with the banner below the scores.
 - Bakurani, Ozeti, and Zestafona display names, including aliases for the API's internal/older names.
 - One shared status request every minute. Rotation and join code refresh every five minutes, with cached catalogs, serialized requests, timeouts, and backoff.
 - Panels survive restarts through a small JSON state file. No database or inbound ports.
@@ -44,7 +44,7 @@ Default faction images come from the community [Wardogs Handbook faction page](h
 
 The bot allows only a narrow set of GET endpoints. It never issues configuration, moderation, or gameplay commands. Requests have ten-second timeouts and at least five seconds between calls. A 429 response pauses all Wardogs requests, honoring `Retry-After`; failures otherwise use approximately 1, 2, 4, then 5-minute retry delays. Discord publishing runs independently.
 
-A failed status read marks the last snapshot **Stale**; five minutes without fresh status shows **Unavailable**. This does not claim the game server itself is offline. Last-known values and their original timestamp remain visible. Join-code and rotation freshness are tracked separately. Missing match duration and score caps stay absent; the bot never assumes that player capacity is a score cap.
+A failed status read marks the last snapshot **Stale**; five minutes without fresh status shows **Unavailable**. This does not claim the game server itself is offline. Last-known values and their original timestamp remain visible. Join-code and rotation freshness are tracked separately. Missing match duration stays absent. Score bars use a fixed 100-point display scale, not a claimed server win condition. Bars clamp at 0–100 while numeric scores remain exact.
 
 401/403 pauses Wardogs polling until you correct the env file and restart. Unsupported optional endpoints are disabled until restart. Deleted panels are removed from state. Permission failures suspend the affected panel; fix permissions and invoke `/status` again, or restart, to resume it. Transient Discord errors retry after a minute.
 

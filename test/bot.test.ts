@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { Store } from "../src/store.js";
 import { Poller, ApiError, WardogsClient, retryAfter } from "../src/poller.js";
 import { parseStatus, friendlyMap, freshness } from "../src/model.js";
-import { embeds, presence } from "../src/render.js";
+import { embeds, presence, scoreBar } from "../src/render.js";
 import { config } from "../src/config.js";
 import { Panels } from "../src/panels.js";
 const fixture = {
@@ -50,16 +50,17 @@ test("real shape renders confirmed aliases, exact presence, UUID and no invented
     "NA1 | 0/100 | Bakurani",
   );
   const output = embeds(s, c, 1_000_000);
-  assert.equal(output.length, 2);
+  assert.equal(output.length, 1);
   assert.ok(
     output[0]!
       .fields!.find((f) => f.name === "Join code")!
       .value.startsWith("```\n00000000"),
   );
   assert.ok(!output[0]!.fields!.some((f) => f.name === "Match duration"));
-  assert.equal(output[1]!.fields!.length, 3);
-  assert.equal(output[1]!.fields![0]!.value, "**0** points");
-  assert.equal(output[1]!.fields![0]!.name, "🟦 Lonestar");
+  assert.equal(
+    output[0]!.fields!.find((f) => f.name === "🟦 Lonestar")!.value,
+    "**0 / 100** points\n`▱▱▱▱▱▱▱▱▱▱`",
+  );
   for (const [raw, name] of Object.entries({
     Europe: "Ozeti",
     Madrid: "Ozeti",
@@ -291,9 +292,11 @@ test("custom emoji uses embed body and cached catalogs name new maps", () => {
     { ...c, emojis: { lonestar: "<:lonestar:123456789012345678>" } },
     1_000_000,
   );
-  assert.equal(output[1]!.author, undefined);
+  assert.equal(output[0]!.author, undefined);
   assert.ok(
-    output[1]!.fields![0]!.name.startsWith("<:lonestar:123456789012345678>"),
+    output[0]!.fields!.some((f) =>
+      f.name.startsWith("<:lonestar:123456789012345678>"),
+    ),
   );
   assert.equal(
     friendlyMap("FutureMap", [
@@ -323,19 +326,38 @@ test("malformed status keeps last valid snapshot rather than replacing it", asyn
   assert.equal(poller.snapshot.failed, true);
 });
 
-test("banner is last and all faction scores share one embed", () => {
+test("one embed aligns metadata and places banner below full-width score bars", () => {
   const output = embeds(
     { status: parseStatus(fixture), failed: false, updatedAt: 1_000_000 },
     { ...c, banner: "https://example.com/banner.webp" },
     1_000_000,
   );
-  assert.equal(output.length, 3);
-  assert.equal(output[0]!.image, undefined);
-  assert.equal(output[1]!.title, "Faction scores");
-  assert.equal(output[1]!.fields!.length, 3);
-  assert.ok(output[1]!.fields!.every((f) => f.inline));
-  assert.deepEqual(output[2]!.image, {
+  assert.equal(output.length, 1);
+  const fields = output[0]!.fields!;
+  const players = fields.findIndex((f) => f.name === "Players");
+  assert.equal(fields[players + 1]!.name, "Next map");
+  assert.ok(fields[players]!.inline && fields[players + 1]!.inline);
+  assert.deepEqual(output[0]!.image, {
     url: "https://example.com/banner.webp",
   });
-  assert.equal(output[2]!.fields, undefined);
+  assert.ok(
+    fields
+      .slice(-3)
+      .every((f) => f.inline === false && f.value.includes("/ 100")),
+  );
+});
+test("score bars have ten segments and clamp fill while retaining exact scores", () => {
+  for (const [score, filled] of [
+    [-10, 0],
+    [0, 0],
+    [9, 0],
+    [10, 1],
+    [59, 5],
+    [100, 10],
+    [150, 10],
+  ]) {
+    const bar = scoreBar(score!);
+    assert.equal(bar.length, 10);
+    assert.equal([...bar].filter((x) => x === "▰").length, filled);
+  }
 });
