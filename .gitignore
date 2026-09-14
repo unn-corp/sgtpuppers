@@ -5,3 +5,7 @@ dist/
 !.env.example
 data/
 *.log
+
+# Keep implementation plans and deployment-specific notes local.
+/docs/implementation-plan.md
+/docs/local/
