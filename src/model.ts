@@ -31,6 +31,7 @@ export type Snapshot = {
   joinCode?: string;
   joinAt?: number;
   joinFailed?: boolean;
+  banner?: string;
 };
 export function parseStatus(raw: unknown): Status {
   const s = raw as Status;

@@ -127,6 +127,7 @@ export function embeds(s: Snapshot, c: Config, now = Date.now()): APIEmbed[] {
     );
   }
   // Keep branding after all status and score content.
-  if (c.banner) e.image = { url: c.banner };
+  const banner = c.banner || s.banner;
+  if (banner) e.image = { url: banner };
   return [e];
 }
