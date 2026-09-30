@@ -27,7 +27,7 @@ Optional settings in [.env.example](.env.example):
 
 - **`SERVER_LABEL`** — short presence label; defaults to `NA1`.
 - **`DISCORD_COMMAND_ROLE_ID`** — allows administrators or members with this role to use slash commands. When blank, **Manage Server** is required.
-- **`BANNER_URL`** — banner image URL. Defaults to the included banner; set blank to hide it.
+- **`BANNER_URL`** — optional banner image override. Leave blank to use the Wardogs sponsor image, fetched at startup and refreshed every five minutes. Failed reads retain the last good image; an empty sponsor image removes the banner. Remove any previously configured canned banner URL to follow Wardogs automatically.
 - **Faction emoji/image overrides** — customize the faction emblems. Defaults use [bundled faction icons](assets/factions); no external image host is required.
 
 Redeploy after changing configuration. Use one bot instance per Wardogs server.

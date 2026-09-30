@@ -174,6 +174,7 @@ test("client is GET-only, uses timeout signal, rejects redirects and parses Retr
     },
   );
   await client.get("/v1/status");
+  await client.get("/v1/sponsor");
   assert.equal(options?.method, "GET");
   assert.equal(options?.redirect, "error");
   assert.ok(options?.signal);
@@ -382,5 +383,159 @@ test("footer uses native Discord timestamp for viewer-local time", () => {
   assert.equal(
     empty!.footer!.text,
     "Created by joinunn.com | Awaiting first update",
+  );
+});
+
+test("sponsor fetches at startup, refreshes every five minutes and clears on empty", async (t) => {
+  const { store } = await temporary(t);
+  let now = 1_000_000;
+  let imageUrl = "https://example.com/first.webp";
+  const calls: number[] = [];
+  const poller = new Poller(
+    {
+      get: async (path) => {
+        if (path === "/v1/status") return fixture;
+        if (path === "/v1/capabilities") return { routes: ["GET /v1/sponsor"] };
+        assert.equal(path, "/v1/sponsor");
+        calls.push(now);
+        return { imageUrl };
+      },
+    },
+    store,
+    () => now,
+  );
+  const advance = async (until: number) => {
+    for (; now <= until; now += 5000) await poller.tick();
+  };
+  assert.equal(embeds(poller.snapshot, c, now)[0]!.image, undefined);
+  await advance(1_010_000);
+  assert.deepEqual(calls, [1_010_000]);
+  assert.equal(embeds(poller.snapshot, c, now)[0]!.image?.url, imageUrl);
+  imageUrl = "https://example.com/second.webp";
+  await advance(1_305_000);
+  assert.equal(calls.length, 1);
+  await advance(1_310_000);
+  assert.deepEqual(calls, [1_010_000, 1_310_000]);
+  assert.equal(embeds(poller.snapshot, c, now)[0]!.image?.url, imageUrl);
+  imageUrl = "";
+  await advance(1_610_000);
+  assert.equal(poller.snapshot.banner, "");
+  assert.equal(embeds(poller.snapshot, c, now)[0]!.image, undefined);
+});
+
+test("failed or malformed sponsor reads retain the last good banner and recover", async (t) => {
+  const { store } = await temporary(t);
+  let now = 1_000_000;
+  let response: unknown = { imageUrl: "https://example.com/good.webp" };
+  let reads = 0;
+  const poller = new Poller(
+    {
+      get: async (path) => {
+        if (path === "/v1/status") return fixture;
+        if (path === "/v1/capabilities") return { routes: ["GET /v1/sponsor"] };
+        reads++;
+        if (response instanceof Error) throw response;
+        return response;
+      },
+    },
+    store,
+    () => now,
+    () => 0,
+  );
+  const nextRead = async () => {
+    const previous = reads;
+    for (let ticks = 0; reads === previous && ticks < 100; ticks++) {
+      await poller.tick();
+      now += 5000;
+    }
+    assert.equal(reads, previous + 1);
+  };
+  await nextRead();
+  for (response of [
+    new ApiError(500),
+    new DOMException("timeout", "TimeoutError"),
+    {},
+    { imageUrl: null },
+    { imageUrl: "not a URL" },
+    { imageUrl: "javascript:alert(1)" },
+    { imageUrl: "https://user:password@example.com/banner.webp" },
+  ]) {
+    await nextRead();
+    assert.equal(poller.snapshot.banner, "https://example.com/good.webp");
+    assert.equal(poller.snapshot.failed, false);
+  }
+  response = { imageUrl: "https://example.com/recovered.webp" };
+  await nextRead();
+  assert.equal(poller.snapshot.banner, "https://example.com/recovered.webp");
+});
+
+test("sponsor is optional and a 404 disables further reads", async (t) => {
+  const { store } = await temporary(t);
+  for (const advertised of [false, true]) {
+    let now = 1_000_000;
+    let sponsorReads = 0;
+    let statusReads = 0;
+    const poller = new Poller(
+      {
+        get: async (path) => {
+          if (path === "/v1/status") {
+            statusReads++;
+            return fixture;
+          }
+          if (path === "/v1/capabilities")
+            return { routes: advertised ? ["GET /v1/sponsor"] : [] };
+          sponsorReads++;
+          throw new ApiError(404);
+        },
+      },
+      store,
+      () => now,
+    );
+    for (let ticks = 0; ticks < 150; ticks++) {
+      await poller.tick();
+      now += 5000;
+    }
+    assert.equal(sponsorReads, advertised ? 1 : 0);
+    assert.ok(statusReads > 10);
+    assert.equal(poller.snapshot.banner, undefined);
+    assert.equal(poller.snapshot.failed, false);
+  }
+});
+
+test("banner-only changes reach panels, unchanged payloads dedupe and overrides win", async (t) => {
+  const { store } = await temporary(t);
+  store.state.panels.push({
+    guildId: "g",
+    channelId: "c",
+    messageId: "m",
+    serverKey: "s",
+  });
+  const panels = new Panels(store);
+  let edits = 0;
+  for (const banner of [
+    undefined,
+    "https://example.com/a.webp",
+    "https://example.com/a.webp",
+    "https://example.com/b.webp",
+    "",
+  ]) {
+    await panels.update(
+      JSON.stringify(embeds({ failed: false, banner }, c)),
+      async () => {
+        edits++;
+      },
+      () => true,
+    );
+  }
+  assert.equal(edits, 4);
+  const snapshot = { failed: false, banner: "https://example.com/api.webp" };
+  assert.equal(
+    embeds(snapshot, { ...c, banner: "" })[0]!.image?.url,
+    snapshot.banner,
+  );
+  assert.equal(
+    embeds(snapshot, { ...c, banner: "https://example.com/override.webp" })[0]!
+      .image?.url,
+    "https://example.com/override.webp",
   );
 });

@@ -29,7 +29,7 @@ export class WardogsClient {
   async get(path: string): Promise<unknown> {
     // Deliberately no general HTTP method or raw command facility.
     if (
-      !/^\/v1\/(status|capabilities|rotation|server-id|catalog\/(maps|experiences|lightings))$/.test(
+      !/^\/v1\/(status|capabilities|rotation|server-id|sponsor|catalog\/(maps|experiences|lightings))$/.test(
         path,
       )
     )
@@ -60,6 +60,7 @@ export class Poller {
     capabilities: 0,
     rotation: 0,
     "server-id": 0,
+    sponsor: 0,
     "catalog/maps": 0,
     "catalog/experiences": 0,
     "catalog/lightings": 0,
@@ -160,6 +161,25 @@ export class Poller {
           joinAt: at,
           joinFailed: false,
         };
+        this.due[path] = at + 300_000;
+      } else if (path === "sponsor") {
+        const imageUrl = (raw as { imageUrl?: unknown })?.imageUrl;
+        if (typeof imageUrl !== "string") throw new Error("Invalid sponsor");
+        const banner = imageUrl.trim();
+        if (banner) {
+          const url = new URL(banner);
+          if (
+            !["http:", "https:"].includes(url.protocol) ||
+            url.username ||
+            url.password
+          )
+            throw new Error("Invalid sponsor image URL");
+        }
+        if (banner !== this.snapshot.banner)
+          console.log(
+            JSON.stringify({ event: "sponsor_updated", hasBanner: !!banner }),
+          );
+        this.snapshot = { ...this.snapshot, banner };
         this.due[path] = at + 300_000;
       } else if (path === "capabilities") {
         const routes = (raw as { routes?: unknown })?.routes;
