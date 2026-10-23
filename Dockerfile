@@ -1,4 +1,4 @@
-FROM node:24-bookworm-slim AS build
+FROM node:24.22.1-bookworm-slim@sha256:55fb5f5a527ea2c5c4a95f963e48ef90aa38c7b346054fdc8ee9957a2b55d205 AS build
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --ignore-scripts
@@ -8,7 +8,7 @@ COPY test ./test
 COPY assets/factions ./assets/factions
 RUN npm test && npm prune --omit=dev --ignore-scripts
 
-FROM node:24-bookworm-slim AS runtime
+FROM node:24.22.1-bookworm-slim@sha256:55fb5f5a527ea2c5c4a95f963e48ef90aa38c7b346054fdc8ee9957a2b55d205 AS runtime
 ENV NODE_ENV=production DATA_DIR=/app/data
 WORKDIR /app
 COPY --from=build /app/package*.json ./
